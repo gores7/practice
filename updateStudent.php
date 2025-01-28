@@ -3,13 +3,13 @@
 include 'createConnection.php';
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lastName = $_POST['last_name'];
         $firstName = $_POST['first_name'];
         $patronymic = $_POST['patronymic'];
         $email = $_POST['email'];
         $birth = $_POST['birth'];
-        $studentID = $_POST['studentID'];
+        $studentID = $_POST['student_id'];
 
         if (!isset($lastName) || !isset($firstName) || !isset($patronymic) || !isset($email) || !isset($birth) || !isset($studentID)) {
             die("Failed to edit record! Please, check your values");

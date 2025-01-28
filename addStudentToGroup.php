@@ -3,7 +3,7 @@
 include 'createConnection.php';
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $studentID = $_POST['student_id'];
         $groupID = $_POST['group_id'];
         $isMain = $_POST['is_main'];

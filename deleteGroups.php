@@ -3,8 +3,8 @@
 include 'createConnection.php';
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        $groupID = $_POST['groupID'];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $groupID = $_POST['group_id'];
 
         if (!isset($groupID)) {
             die("Failed to delete record! Please, input group ID");
@@ -13,16 +13,14 @@ try {
         $dbh->beginTransaction();
 
         $query1 = "DELETE FROM student_group 
-                    WHERE group_id = :ID";
+                    WHERE group_id = ?";
         $sth = $dbh->prepare($query1);
-        $sth->bindParam(':ID', $groupID);
-        $sth->execute();
+        $sth->execute(array($groupID));
 
         $query2 = "DELETE FROM groups 
-                    WHERE grid = :ID";
+                    WHERE grid = ?";
         $sth = $dbh->prepare($query2);
-        $sth->bindParam(':ID', $groupID);
-        $sth->execute();
+        $sth->execute(array($groupID));
 
         $dbh->commit();
     } else {

@@ -3,10 +3,10 @@
 include 'createConnection.php';
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT' || $_SERVER['REQUEST_METHOD'] === 'PATCH') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $groupName = $_POST['group_name'];
         $groupType = $_POST['group_type'];
-        $groupID = $_POST['groupID'];
+        $groupID = $_POST['group_id'];
 
         if (!isset($groupName) || !isset($groupType) || !isset($groupID)) {
             die("Failed to edit record! Please, check your values!");

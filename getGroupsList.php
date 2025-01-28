@@ -9,7 +9,7 @@ try {
         $lastName = $_POST['last_name'];
 
         if (!isset($firstName) || !isset($lastName)) {
-            die("Failed to open list of students! Please, input group name");
+            die("Failed to open list of groups! Please, input student's name");
         }
 
         $query = "SELECT g.group_name, g.group_type, sg.is_main
@@ -19,8 +19,6 @@ try {
                     WHERE s.first_name = ? AND s.last_name = ?";
         $sth = $dbh->prepare($query);
 
-        //$sth->bindParam(':first_name', $firstName);
-        //$sth->bindParam(':last_name', $lastName);
         $sth->execute(array($firstName, $lastName));
 
         $groups = $sth->fetchAll(PDO::FETCH_ASSOC);

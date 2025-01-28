@@ -3,7 +3,7 @@
 include 'createConnection.php';
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $groupName = $_POST['group_name'];
         $groupType = $_POST['group_type'];
 
