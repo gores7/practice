@@ -1,27 +1,38 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $groupName = $_POST['group_name'];
-        $groupType = $_POST['group_type'];
-        $groupID = $_POST['group_id'];
+        $requiredParams = ['group_name', 'group_type', 'group_id'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($groupName) || !isset($groupType) || !isset($groupID)) {
-            die("Failed to edit record! Please, check your values!");
-        }
+        $update = file_get_contents('sql/updateGroup.sql');
+        $sth = $dbh->prepare($update);
+        $sth->execute(array($group_name, $group_type, $group_id));
 
-        $dbh->beginTransaction();
-
-        $query = "UPDATE groups SET group_name = ?, group_type = ? WHERE grid = ?";
-        $sth = $dbh->prepare($query);
-        $sth->execute(array($groupName, $groupType, $groupID));
-
-        $dbh->commit();
+        echo json_encode(['success' => true, 'msg' => 'Данные успешно обновлены']);
     } else {
-        die("Bad method request!");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при обновлении данных о группе']);
 }

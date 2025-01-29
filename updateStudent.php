@@ -1,32 +1,38 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $lastName = $_POST['last_name'];
-        $firstName = $_POST['first_name'];
-        $patronymic = $_POST['patronymic'];
-        $email = $_POST['email'];
-        $birth = $_POST['birth'];
-        $studentID = $_POST['student_id'];
+        $requiredParams = ['last_name', 'first_name', 'patronymic', 'email', 'birth', 'student_id'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($lastName) || !isset($firstName) || !isset($patronymic) || !isset($email) || !isset($birth) || !isset($studentID)) {
-            die("Failed to edit record! Please, check your values");
-        }
+        $update = file_get_contents('sql/updateStudent.sql');
+        $sth = $dbh->prepare($update);
+        $sth->execute(array($last_name, $first_name, $patronymic, $email, $birth, $student_id));
 
-        $dbh->beginTransaction();
-
-        $query = "UPDATE students 
-                    SET last_name = ?, first_name = ?, patronymic = ?, email = ?, birth = ? 
-                    WHERE studid = ?";
-        $sth = $dbh->prepare($query);
-        $sth->execute(array($lastName, $firstName, $patronymic, $email, $birth, $studentID));
-
-        $dbh->commit();
+        echo json_encode(['success' => true, 'msg' => 'Данные успешно обновлены']);
     } else {
-        die("Bad method request!");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при обновлении данных о студенте']);
 }

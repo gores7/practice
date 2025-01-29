@@ -1,31 +1,47 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $groupID = $_POST['group_id'];
-
-        if (!isset($groupID)) {
-            die("Failed to delete record! Please, input group ID");
-        }
+        $requiredParams = ['group_id'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
         $dbh->beginTransaction();
 
-        $query1 = "DELETE FROM student_group 
-                    WHERE group_id = ?";
-        $sth = $dbh->prepare($query1);
-        $sth->execute(array($groupID));
+        $deleteFromStudentGroup = file_get_contents('sql/deleteGroupFromStudentGroup.sql');
+        $sth = $dbh->prepare($deleteFromStudentGroup);
+        $sth->execute(array($group_id));
 
-        $query2 = "DELETE FROM groups 
-                    WHERE grid = ?";
-        $sth = $dbh->prepare($query2);
-        $sth->execute(array($groupID));
+        $deleteFromGroups = file_get_contents('sql/deleteGroupFromGroups.sql');
+        $sth = $dbh->prepare($deleteFromGroups);
+        $sth->execute(array($group_id));
 
         $dbh->commit();
+
+        echo json_encode(['success' => true, 'msg' => 'Данные успешно удалены']);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверные метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при удалении данных о группе']);
+    $dbh->rollBack();
 }

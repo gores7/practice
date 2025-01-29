@@ -6,16 +6,15 @@ header('Content-Type: application/json');
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-        $query = "SELECT * FROM groups";
-        $sth = $dbh->prepare($query);
+        $select = file_get_contents('sql/selectGroups.sql');
+        $sth = $dbh->prepare($select);
         $sth->execute();
 
         $groups = $sth->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['groups' => $groups]);
-
+        echo json_encode(['success' => true, 'groups' => $groups]);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при получении списка групп']);
 }

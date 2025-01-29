@@ -1,41 +1,55 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
+
+/*
+ * $is_main - наличие основной группы у студента
+ * 1 - состоит в группе
+ * 0 - не состоит в группе
+ */
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $studentID = $_POST['student_id'];
-        $groupID = $_POST['group_id'];
-        $isMain = $_POST['is_main'];
+        $requiredParams = ['student_id', 'group_id', 'is_main'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($studentID) || !isset($groupID) || !isset($isMain)) {
-            die("Failed to add record! Please, input all values");
-        }
-
-        if ($isMain == 1) {
-            $query1 = "SELECT count(*) FROM student_group  
-                        WHERE student_id = ? AND is_main = 1";
-            $sth = $dbh->prepare($query1);
-            $sth->execute(array($studentID));
+        if ((int)$is_main === 1) {
+            $select = file_get_contents('sql/checkMainGroup.sql');
+            $sth = $dbh->prepare($select);
+            $sth->execute(array($student_id));
 
             $count = $sth->fetchColumn();
             if ($count > 0) {
-                die("Student is already in the main group!");
+                echo json_encode(['success' => false, 'msg' => 'Студент уже состоит в основной группе']);
             }
         }
 
-        $dbh->beginTransaction();
+        $insert = file_get_contents('sql/addStudentToGroup.sql');
+        $sth = $dbh->prepare($insert);
+        $sth->execute(array($student_id, $group_id, $is_main));
 
-        $query2 = "INSERT INTO student_group (student_id, group_id, is_main) VALUES (?, ?, ?)";
-        $sth = $dbh->prepare($query2);
-        $sth->execute(array($studentID, $groupID, $isMain));
-
-        $dbh->commit();
+        echo json_encode(['success' => true, 'msg' => 'Студент добавлен в группу']);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при добавлении студента в группу']);
 }
-
-

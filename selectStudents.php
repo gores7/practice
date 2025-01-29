@@ -6,16 +6,15 @@ header('Content-Type: application/json');
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-        $query = "SELECT * FROM students";
+        $query = file_get_contents('sql/selectStudents.sql');
         $sth = $dbh->prepare($query);
         $sth->execute();
 
         $students = $sth->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['students' => $students]);
-
+        echo json_encode(['success' => true, 'students' => $students]);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при получении данных студентов']);
 }

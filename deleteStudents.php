@@ -1,31 +1,47 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $studentID = $_POST['student_id'];
-
-        if (!isset($studentID)) {
-            die("Failed to delete record! Please, input student ID");
-        }
+        $requiredParams = ['student_id'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
         $dbh->beginTransaction();
 
-        $query1 = "DELETE FROM student_group 
-                    WHERE student_id = ?";
-        $sth = $dbh->prepare($query1);
-        $sth->execute(array($studentID));
+        $deleteFromStudentGroup = file_get_contents('sql/deleteStudentFromStudentGroup.sql');
+        $sth = $dbh->prepare($deleteFromStudentGroup);
+        $sth->execute(array($student_id));
 
-        $query2 = "DELETE FROM students 
-                    WHERE studid = ?";
-        $sth = $dbh->prepare($query2);
-        $sth->execute(array($studentID));
+        $deleteFromStudents = file_get_contents('sql/deleteStudentFromStudents.sql');
+        $sth = $dbh->prepare($deleteFromStudents);
+        $sth->execute(array($student_id));
 
         $dbh->commit();
+
+        echo json_encode(['success' => true, 'msg' => 'Данные успешно удалены']);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при удалении данных о студенте']);
+    $dbh->rollBack();
 }

@@ -3,29 +3,38 @@
 include 'createConnection.php';
 header('Content-Type: application/json');
 
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
+
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $groupName = $_POST['group_name'];
+        $requiredParams = ['group_name'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($groupName) ) {
-            die("Failed to open list of students! Please, input group name");
-        }
-
-        $query = "SELECT s.first_name, s.last_name, g.group_name 
-                    FROM students s
-                    JOIN student_group sg ON s.studid = sg.student_id
-                    JOIN groups g ON sg.group_id = g.grid
-                    WHERE g.group_name = ?";
-
-        $sth = $dbh->prepare($query);
-        $sth->execute(array($groupName));
+        $select = file_get_contents('sql/getStudentsList.sql');
+        $sth = $dbh->prepare($select);
+        $sth->execute(array($group_name));
 
         $students = $sth->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['students' => $students]);
-
+        echo json_encode($students);
+        echo json_encode(['success' => true, 'students' => $students]);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при получении списка студентов группы']);
 }

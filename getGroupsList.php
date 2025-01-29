@@ -3,30 +3,37 @@
 include 'createConnection.php';
 header('Content-Type: application/json');
 
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
+
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $firstName = $_POST['first_name'];
-        $lastName = $_POST['last_name'];
+        $requiredParams = ['first_name', 'last_name'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($firstName) || !isset($lastName)) {
-            die("Failed to open list of groups! Please, input student's name");
-        }
-
-        $query = "SELECT g.group_name, g.group_type, sg.is_main
-                    FROM groups g
-                    JOIN student_group sg ON g.grid = sg.group_id 
-                    JOIN students s ON sg.student_id = s.studid
-                    WHERE s.first_name = ? AND s.last_name = ?";
-        $sth = $dbh->prepare($query);
-
-        $sth->execute(array($firstName, $lastName));
+        $select = file_get_contents('sql/getGroupsList.sql');
+        $sth = $dbh->prepare($select);
+        $sth->execute(array($first_name, $last_name));
 
         $groups = $sth->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['groups' => $groups]);
-
+        echo json_encode(['success' => true, 'groups' => $groups]);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: " . $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при получении списка групп для студента']);
 }

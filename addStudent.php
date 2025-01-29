@@ -1,30 +1,38 @@
 <?php
 
 include 'createConnection.php';
+header('Content-Type: application/json');
+
+function checkAndPrepareParams(array $request, array $requiredParams): array
+{
+    $preparedParams = [];
+
+    foreach ($requiredParams as $param) {
+        if (!isset($_REQUEST[$param])) {
+            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
+            die();
+        } else {
+            $preparedParams[$param] = $request[$param];
+        }
+    }
+
+    return $preparedParams;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $lastName = $_POST['last_name'];
-        $firstName = $_POST['first_name'];
-        $patronymic = $_POST['patronymic'];
-        $email = $_POST['email'];
-        $birth = $_POST['birth'];
+        $requiredParams = ['last_name', 'first_name', 'patronymic', 'email', 'birth'];
+        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
+        extract($preparedParams);
 
-        if (!isset($lastName) || !isset($firstName) || !isset($patronymic) || !isset($email) || !isset($birth)) {
-            die("Failed to add record! Please, input all values");
-        }
+        $insert = file_get_contents('sql/addStudent.sql');
+        $sth = $dbh->prepare($insert);
+        $sth->execute(array($last_name, $first_name, $patronymic, $email, $birth));
 
-        $dbh->beginTransaction();
-
-        $query = "INSERT INTO students (last_name, first_name, patronymic, email, birth) 
-                        VALUES (?, ?, ?, ?, ?)";
-        $sth = $dbh->prepare($query);
-        $sth->execute(array($lastName, $firstName, $patronymic, $email, $birth));
-
-        $dbh->commit();
+        echo json_encode(['success' => true, 'msg' => 'Студент успешно добавлен']);
     } else {
-        die("Bad method request");
+        echo json_encode(['success' => false, 'msg' => 'Неверный метод запроса']);
     }
-} catch (PDOException $e) {
-    echo "Database error: ". $e->getMessage();
+} catch (PDOException $exception) {
+    echo json_encode(['success' => false, 'msg' => 'Ошибка при добавлении данных о студенте']);
 }
