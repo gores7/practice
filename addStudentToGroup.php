@@ -3,17 +3,15 @@
 include 'include.php';
 header('Content-Type: application/json');
 
-/*
- * $is_main - тип группы у студента
- * 1 - основное образование
- * 0 - дополнительное образование
- */
-
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $requiredParams = ['student_id', 'group_id', 'is_main'];
         extract(checkAndPrepareParams($_REQUEST, $requiredParams));
 
+        /**
+         * Тип группы у студента
+         * 1 - основное образование
+         */
         if ((int)$is_main === 1) {
             $select = file_get_contents('sql/checkMainGroup.sql');
             $sth = $dbh->prepare($select);
