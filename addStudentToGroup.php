@@ -1,35 +1,18 @@
 <?php
 
-include 'createConnection.php';
+include 'include.php';
 header('Content-Type: application/json');
 
-function checkAndPrepareParams(array $request, array $requiredParams): array
-{
-    $preparedParams = [];
-
-    foreach ($requiredParams as $param) {
-        if (!isset($_REQUEST[$param])) {
-            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
-            die();
-        } else {
-            $preparedParams[$param] = $request[$param];
-        }
-    }
-
-    return $preparedParams;
-}
-
 /*
- * $is_main - наличие основной группы у студента
- * 1 - состоит в группе
- * 0 - не состоит в группе
+ * $is_main - тип группы у студента
+ * 1 - основное образование
+ * 0 - дополнительное образование
  */
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $requiredParams = ['student_id', 'group_id', 'is_main'];
-        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
-        extract($preparedParams);
+        extract(checkAndPrepareParams($_REQUEST, $requiredParams));
 
         if ((int)$is_main === 1) {
             $select = file_get_contents('sql/checkMainGroup.sql');

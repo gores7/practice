@@ -1,6 +1,6 @@
 <?php
 
-include 'createConnection.php';
+include 'include.php';
 header('Content-Type: application/json');
 
 try {

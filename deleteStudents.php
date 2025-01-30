@@ -1,29 +1,12 @@
 <?php
 
-include 'createConnection.php';
+include 'include.php';
 header('Content-Type: application/json');
-
-function checkAndPrepareParams(array $request, array $requiredParams): array
-{
-    $preparedParams = [];
-
-    foreach ($requiredParams as $param) {
-        if (!isset($_REQUEST[$param])) {
-            echo json_encode(['success' => false, 'msg' => 'Отсутствуют необходимые параметры']);
-            die();
-        } else {
-            $preparedParams[$param] = $request[$param];
-        }
-    }
-
-    return $preparedParams;
-}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $requiredParams = ['student_id'];
-        $preparedParams = checkAndPrepareParams($_REQUEST, $requiredParams);
-        extract($preparedParams);
+        extract(checkAndPrepareParams($_REQUEST, $requiredParams));
 
         $dbh->beginTransaction();
 
