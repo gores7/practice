@@ -3,5 +3,5 @@
 $Hostname = 'localhost';
 $DatabaseName = 'practice';
 $DatabaseUser = 'postgres';
-$DatabasePassword = 'kuzko1234';
+$DatabasePassword = 'P@ssw0rd';
 $port = '5432';
