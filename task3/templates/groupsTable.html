@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Данные о группах </title>
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+<font face="Dejavu serif">
+    <table>
+        <thead>
+        <tr>
+            <th> No </th>
+            <th> Группа </th>
+            <th> Тип образования </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+        <tr>
+            <td> {{ group.id }} </td>
+            <td> {{ group.groupName }} </td>
+            <td> {{ group.groupType }} </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</font>
+</body>
+</html>
