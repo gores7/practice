@@ -2,7 +2,6 @@
 
 namespace task3\controllers;
 
-use Doctrine\ORM\EntityManager;
 use task3\dto\StudentGroupDto;
 use task3\services\StudentGroupService;
 
@@ -10,11 +9,16 @@ class StudentGroupController
 {
     public StudentGroupService $studentGroupService;
 
-    public function __construct(EntityManager $entityManager)
+    public function __construct(StudentGroupService $studentGroupService)
     {
-        $this->studentGroupService = new StudentGroupService($entityManager);
+        $this->studentGroupService = $studentGroupService;
     }
 
+    /**
+     * Связь студента и группы
+     * @param array $request
+     * @return void
+     */
     public function create(array $request): void
     {
         $studentGroupDto = new StudentGroupDto();
@@ -25,19 +29,34 @@ class StudentGroupController
         $this->studentGroupService->create($studentGroupDto);
     }
 
-    public function get(array $request): array
+    /**
+     * Получение списка групп для определённого студента
+     * @param array $request
+     * @return array
+     */
+    public function getGroupsList(array $request): array
     {
-        $studentId = $request['student_id'] ?? null;
-        $groupId = $request['group_id'] ?? null;
+        $studentId = $request['student_id'];
+        return $this->studentGroupService->getGroupsList($studentId);
+    }
 
-        if ($studentId) {
-            return $this->studentGroupService->getGroupsList($studentId);
-        }
+    /**
+     * Получение списка студентов для определённой группы
+     * @param array $request
+     * @return array
+     */
+    public function getStudentsList(array $request): array
+    {
+        $groupId = $request['group_id'];
+        return $this->studentGroupService->getStudentsList($groupId);
+    }
 
-        if ($groupId) {
-            return $this->studentGroupService->getStudentsList($groupId);
-        }
-
+    /**
+     * Получение всей информации
+     * @return array
+     */
+    public function getFullInformation(): array
+    {
         return $this->studentGroupService->getFullInformation();
     }
 }
