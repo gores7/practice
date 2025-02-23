@@ -11,9 +11,11 @@ if (empty($_REQUEST['act']) || empty($_REQUEST['method'])) {
 $action = ucfirst($_REQUEST['act']);
 $method = strtolower($_REQUEST['method']);
 
-$class = 'task3\\controllers\\' . $action . 'Controller';
+$controllerName = 'task3\\controllers\\' . $action . 'Controller';
+$serviceName = 'task3\\services\\' . $action . 'Service';
 
-$controller = new $class($entityManager);
+$service = new $serviceName($entityManager);
+$controller = new $controllerName($service);
 
 $response = $controller->$method($_REQUEST);
 
