@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\Table;
+use task3\dto\GroupDto;
 
 #[Entity]
 #[Table(name: 'groups')]
@@ -35,38 +36,62 @@ class GroupEntity
         $this->studentGroup = new ArrayCollection();
     }
 
+    /**
+     * @return int
+     */
     public function getId(): int
     {
         return $this->id;
     }
 
+    /**
+     * @return string
+     */
     public function getGroupName(): string
     {
         return $this->groupName;
     }
 
+    /**
+     * @param string $groupName
+     * @return GroupEntity
+     */
     public function setGroupName(string $groupName): GroupEntity
     {
         $this->groupName = $groupName;
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getGroupType(): string
     {
         return $this->groupType;
     }
 
+    /**
+     * @param string $groupType
+     * @return GroupEntity
+     */
     public function setGroupType(string $groupType): GroupEntity
     {
         $this->groupType = $groupType;
         return $this;
     }
 
+    /**
+     * @return Collection
+     */
     public function getStudentGroup(): Collection
     {
         return $this->studentGroup;
     }
 
+    /**
+     * @param StudentGroupEntity $studentGroup
+     * @return GroupEntity
+     */
     public function setStudentGroup(StudentGroupEntity $studentGroup): GroupEntity
     {
         $this->studentGroup->add($studentGroup);
@@ -74,9 +99,36 @@ class GroupEntity
         return $this;
     }
 
+    /**
+     * @param StudentGroupEntity $studentGroup
+     * @return GroupEntity
+     */
     public function removeStudentGroup(StudentGroupEntity $studentGroup): GroupEntity
     {
         $this->studentGroup = new ArrayCollection();
         return $this;
+    }
+
+    /**
+     * @return GroupDto
+     */
+    public function getGroupEntityFromDto(): GroupDto
+    {
+        $groupDto = new GroupDto();
+        $groupDto->id = $this->getId();
+        $groupDto->groupName = $this->getGroupName();
+        $groupDto->groupType = $this->getGroupType();
+
+        return $groupDto;
+    }
+
+    /**
+     * @param GroupDto $groupDto
+     * @return void
+     */
+    public function setGroupEntityToDto(GroupDto $groupDto): void
+    {
+        $this->setGroupName($groupDto->groupName);
+        $this->setGroupType($groupDto->groupType);
     }
 }

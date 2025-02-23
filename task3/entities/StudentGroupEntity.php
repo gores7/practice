@@ -29,27 +29,44 @@ class StudentGroupEntity
     #[JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false)]
     private GroupEntity $groupId;
 
+    /**
+     * @return int
+     */
     public function getId(): int
     {
         return $this->id;
     }
 
+    /**
+     * @return StudentEntity
+     */
     public function getStudent(): StudentEntity
     {
         return $this->studentId;
     }
 
+    /**
+     * @param StudentEntity $studentId
+     * @return StudentGroupEntity
+     */
     public function setStudent(StudentEntity $studentId): StudentGroupEntity
     {
         $this->studentId = $studentId;
         return $this;
     }
 
+    /**
+     * @return GroupEntity
+     */
     public function getGroup(): GroupEntity
     {
         return $this->groupId;
     }
 
+    /**
+     * @param GroupEntity $groupId
+     * @return StudentGroupEntity
+     */
     public function setGroup(GroupEntity $groupId): StudentGroupEntity
     {
         $this->groupId = $groupId;
