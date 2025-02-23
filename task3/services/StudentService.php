@@ -20,51 +20,78 @@ class StudentService
         $this->entityManager = $entityManager;
     }
 
-    public function get(?int $studentId): array
+    /**
+     * @param int $studentId
+     * @return array
+     */
+    public function getStudentById(int $studentId): array
     {
-        if ($studentId) {
-            try {
-                $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentId);
+        try {
+            $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentId);
 
-                return [$this->mapStudentEntityToDto($student)];
-            } catch (Throwable) {
-                printError('Ошибка при получении студента');
-                return [];
-            }
-        } else {
+            return [$student->getStudentEntityFromDto()];
+        } catch (Throwable) {
+            printError('Ошибка при получении студента');
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getStudents(): array
+    {
+        try {
             $students = $this->entityManager->getRepository(StudentEntity::class)->findAll();
 
             $result = [];
             foreach ($students as $student) {
-                $result[] = $this->mapStudentEntityToDto($student);
+                $result[] = $student->getStudentEntityFromDto();
             }
 
             return $result;
+        } catch (Throwable) {
+            printError('Ошибка при получении студентов');
         }
     }
 
-    public function update(StudentDto $studentDto): void
+    /**
+     * @param StudentDto $studentDto
+     * @return void
+     */
+    public function create(StudentDto $studentDto): void
     {
-        if (isset($studentDto->id)) {
-            $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentDto->id);
-        } else {
-            $student = new StudentEntity();
-        }
-
         try {
-            $student->setLastName($studentDto->lastName);
-            $student->setFirstName($studentDto->firstName);
-            $student->setPatronymic($studentDto->patronymic);
-            $student->setEmail($studentDto->email);
-            $student->setDateOfBirth($studentDto->dateOfBirth);
+            $student = new StudentEntity();
 
+            $student->setStudentEntityToDto($studentDto);
             $this->entityManager->persist($student);
             $this->entityManager->flush();
         } catch (Throwable) {
-            printError('Ошибка при обновлении/создании студента');
+            printError('Ошибка при создании студента');
         }
     }
 
+    /**
+     * @param StudentDto $studentDto
+     * @return void
+     */
+    public function update(StudentDto $studentDto): void
+    {
+        try {
+            $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentDto->id);
+
+            $student->setStudentEntityToDto($studentDto);
+            $this->entityManager->persist($student);
+            $this->entityManager->flush();
+        } catch (Throwable) {
+            printError('Ошибка при обновлении студента');
+        }
+    }
+
+    /**
+     * @param int $id
+     * @return void
+     */
     public function delete(int $id): void
     {
         try {
@@ -76,6 +103,9 @@ class StudentService
         }
     }
 
+    /**
+     * @return void
+     */
     public function getPdf(): void
     {
         $loader = new FilesystemLoader('templates');
@@ -85,7 +115,7 @@ class StudentService
         $studentsPdf = [];
 
         foreach ($students as $student) {
-            $studentsPdf[] = $this->mapStudentEntityToDto($student);
+            $studentsPdf[] = $student->getStudentEntityFromDto();
         }
 
         $html = $twig->render('studentsTable.html', ['students' => $studentsPdf]);
@@ -95,19 +125,6 @@ class StudentService
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-        $dompdf->stream();
-    }
-
-    private function mapStudentEntityToDto(StudentEntity $student): StudentDto
-    {
-        $studentDto = new StudentDto();
-        $studentDto->id = $student->getId();
-        $studentDto->lastName = $student->getLastName();
-        $studentDto->firstName = $student->getFirstName();
-        $studentDto->patronymic = $student->getPatronymic();
-        $studentDto->email = $student->getEmail();
-        $studentDto->dateOfBirth = $student->getDateOfBirth();
-
-        return $studentDto;
+        $dompdf->stream('students.pdf');
     }
 }

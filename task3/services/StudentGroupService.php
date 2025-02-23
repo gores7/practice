@@ -18,21 +18,19 @@ class StudentGroupService
         $this->entityManager = $entityManager;
     }
 
+    /**
+     * @param StudentGroupDto $studentGroupDto
+     * @return void
+     */
     public function create(StudentGroupDto $studentGroupDto): void
     {
         $studentId = $studentGroupDto->studentId;
-        $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentId);
-
-        if (!$student) {
-            printError('Данного студента не существует');
-        }
+        $student = $this->entityManager->getRepository(StudentEntity::class)->find($studentId)
+                ?? printError('Данного студента не существует');
 
         $groupId = $studentGroupDto->groupId;
-        $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupId);
-
-        if (!$group) {
-            printError('Данной группы не существует');
-        }
+        $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupId)
+                ?? printError('Данной группы не существует');
 
         try {
             $studentGroup = new StudentGroupEntity();
@@ -47,6 +45,10 @@ class StudentGroupService
         }
     }
 
+    /**
+     * @param int $groupId
+     * @return array
+     */
     public function getStudentsList(int $groupId): array
     {
         $list = $this->entityManager->getRepository(StudentGroupEntity::class)->getStudentsList($groupId);
@@ -58,6 +60,10 @@ class StudentGroupService
         return $list;
     }
 
+    /**
+     * @param int $studentId
+     * @return array
+     */
     public function getGroupsList(int $studentId): array
     {
 
@@ -70,6 +76,9 @@ class StudentGroupService
         return $list;
     }
 
+    /**
+     * @return array
+     */
     public function getFullInformation(): array
     {
         return $this->entityManager->getRepository(StudentGroupEntity::class)->getFullInformation();

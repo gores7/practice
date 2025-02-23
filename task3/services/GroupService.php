@@ -19,41 +19,67 @@ class GroupService
         $this->entityManager = $entityManager;
     }
 
-    public function get(?int $groupId): array
+    /**
+     * @param int $groupId
+     * @return array
+     */
+    public function getGroupById(int $groupId): array
     {
-        if ($groupId) {
-            try {
-                $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupId);
+        try {
+            $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupId);
 
-                return [$this->mapGroupEntityToDto($group)];
-            } catch (Throwable) {
-                printError('Ошибка при получении группы');
-                return [];
-            }
-        } else {
+            return [$group->getGroupEntityFromDto()];
+        } catch (Throwable) {
+            printError('Ошибка при получении группы');
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getGroups(): array
+    {
+        try {
             $groups = $this->entityManager->getRepository(GroupEntity::class)->findAll();
 
             $result = [];
             foreach ($groups as $group) {
-                $result[] = $this->mapGroupEntityToDto($group);
+                $result[] = $group->getGroupEntityFromDto();
             }
 
             return $result;
+        } catch (Throwable) {
+            printError('Ошибка при получении групп');
         }
     }
 
+    /**
+     * @param GroupDto $groupDto
+     * @return void
+     */
+    public function create(GroupDto $groupDto): void
+    {
+        try {
+            $group = new GroupEntity();
+
+            $group->setGroupEntityToDto($groupDto);
+            $this->entityManager->persist($group);
+            $this->entityManager->flush();
+        } catch (Throwable) {
+            printError('Ошибка при создании группы');
+        }
+    }
+
+    /**
+     * @param GroupDto $groupDto
+     * @return void
+     */
     public function update(GroupDto $groupDto): void
     {
-        if (isset($groupDto->id)) {
-            $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupDto->id);
-        } else {
-            $group = new GroupEntity();
-        }
-
         try {
-            $group->setGroupName($groupDto->groupName);
-            $group->setGroupType($groupDto->groupType);
+            $group = $this->entityManager->getRepository(GroupEntity::class)->find($groupDto->id);
 
+            $group->setGroupEntityToDto($groupDto);
             $this->entityManager->persist($group);
             $this->entityManager->flush();
         } catch (Throwable) {
@@ -61,6 +87,10 @@ class GroupService
         }
     }
 
+    /**
+     * @param int $id
+     * @return void
+     */
     public function delete(int $id): void
     {
         try {
@@ -72,6 +102,9 @@ class GroupService
         }
     }
 
+    /**
+     * @return void
+     */
     public function getPdf(): void
     {
         $loader = new FilesystemLoader('templates');
@@ -81,7 +114,7 @@ class GroupService
         $groupsPdf = [];
 
         foreach ($groups as $group) {
-            $groupsPdf[] = $this->mapGroupEntityToDto($group);
+            $groupsPdf[] = $group->getGroupEntityFromDto();
         }
 
         $html = $twig->render('groupsTable.html', ['groups' => $groupsPdf]);
@@ -91,16 +124,6 @@ class GroupService
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-        $dompdf->stream();
-    }
-
-    private function mapGroupEntityToDto(GroupEntity $group): GroupDto
-    {
-        $groupDto = new GroupDto();
-        $groupDto->id = $group->getId();
-        $groupDto->groupName = $group->getGroupName();
-        $groupDto->groupType = $group->getGroupType();
-
-        return $groupDto;
+        $dompdf->stream('groups.pdf');
     }
 }
